@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os,re
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^+^9*k9u^*3twjj+0zkqnjzkm8e&#_=%&08m@*ajz!za3ra+%n'
+SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG","").lower() == "true"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS","").split(",")
 
 
 # Application definition
@@ -37,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt'
 ]
 
 MIDDLEWARE = [
@@ -69,14 +72,37 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tweedle.wsgi.application'
 
+# Django Rest Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+db_regex = re.compile(r"^postgres://(?P<user>.+):(?P<password>.+)@(?P<host>.+):(?P<port>[0-9]+)/(?P<name>.*)$")
+db = db_regex.match(os.environ.get("DATABASE_URL","")) 
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        "ENGINE" : "django.db.backends.postgresql_psycopg2",
+        "NAME" : db.group("name"),
+        "USER" : db.group("user"),
+        "PASSWORD" : db.group("password"),
+        "HOST" : db.group("host"),
+        "PORT": db.group("port")
+    }
+}
+
+# Cache
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.environ.get("REDIS_URL",""),
     }
 }
 
