@@ -1,1 +1,1 @@
-web: gunicorn tweedle.wsgi:application
+web: python manage.py migrate && gunicorn tweedle.wsgi:application
