@@ -1,6 +1,7 @@
-import requests
 from django.contrib.auth.models import User
-from rest_framework.generics import GenericAPIView
+from django.db.models import Window, Subquery
+from django.db.models.functions import window
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,13 +10,30 @@ from .serializers import AccountSerializer,SigninSerializer
 from .models import Account
 from v1.account.firebase import getFirebaseUser
 
-class AccountView(GenericAPIView):
+from .serializers import LeaderboardSerializer
 
+class AccountView(GenericViewSet):
+
+    permission_classes = ()
+    authentication_classes = ()
     serializer_class = AccountSerializer
     queryset = Account.objects.all()
+    lookup_field = "handle"
 
-    def get(self,request,*args,**kwargs):
-        return Response()
+    def list(self, request, *args, **kwargs):
+        country_code = request.country_code
+        accounts = self.get_queryset().filter(country_code=country_code)\
+            .order_by("-points")
+        serializer = LeaderboardSerializer(accounts,many=True)
+        return Response(serializer.data)
+
+    
+    def retrieve(self, request, handle, *args, **kwargs):
+        account = Account.ranking.get(handle)
+        serializer = self.get_serializer_class()(account)
+
+        return Response(serializer.data)
+        
 
 class TokenView(APIView):
     permission_classes = ()
@@ -39,12 +57,12 @@ class TokenView(APIView):
             account.save()
         except User.DoesNotExist:
             user = User.objects.create_user(details["userid"])
-            country = self.get_country(request)
+            country_code = request.country_code
             account = Account.objects.create(user=user,
                         handle=details["handle"],
                         picture=details["picture"],
                         points=0,
-                        country_code=country)
+                        country_code=country_code)
             
         token = RefreshToken.for_user(user)
         token["handle"] = account.handle
@@ -54,16 +72,3 @@ class TokenView(APIView):
             "access": str(token.access_token),
             "refresh": str(token)
         })
-            
-    def get_country(self,request):
-        print(request.META)
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[-1]
-        else:
-            ip = request.META.get("REMOTE_ADDR")
-            
-        response = requests.get(f"http://ip-api.com/json/{ip}",
-                    {"fields":"country"})
-        json = response.json()
-        return json["country"]

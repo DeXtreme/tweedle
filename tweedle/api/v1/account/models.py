@@ -1,6 +1,37 @@
 from argparse import ONE_OR_MORE
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Window,F
+from django.db.models.functions import window
+
+
+class AccountRankingManager(models.Manager):
+    def get(self, handle):
+        account = self.get_queryset().get(handle=handle)
+
+        rankings = self.get_queryset()\
+                        .filter(country_code=account.country_code)\
+                        .order_by("-points")\
+                        .annotate(rank=Window(
+                            expression=window.RowNumber(),
+                            order_by=F("points").desc()))
+
+        sql, params = rankings.query.sql_with_params()
+
+        account_rank =  self.get_queryset().raw("""
+            SELECT * FROM ({}) rankings
+            WHERE handle = %s
+        """.format(sql),[*params, handle])[0].rank
+
+        ranks = self.get_queryset().raw("""
+            SELECT * FROM ({}) rankings
+            WHERE rank <= %s AND rank >= %s
+        """.format(sql),[*params, account_rank+2, account_rank-2])
+
+        account.ranks = ranks
+
+        return account
+
 
 class Account(models.Model):
     """Account model
@@ -27,6 +58,9 @@ class Account(models.Model):
     country_code = models.CharField(max_length=5)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = models.Manager()
+    ranking = AccountRankingManager()
 
     def __str__(self):
         return f"@{self.handle}"

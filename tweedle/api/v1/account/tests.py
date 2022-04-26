@@ -4,9 +4,18 @@ from rest_framework.test import APITestCase
 from unittest.mock import patch
 from rest_framework_simplejwt.tokens import AccessToken
 
-from .models import Account
+from .models import Account, Trophy
 
-class AccountViewTestCase(APITestCase):
+class MockRequests:
+    class MockResponse:
+        def json(self):
+            return {"countryCode":"TES"}
+
+    def get(self, *args):
+        return self.MockResponse()
+
+@patch("v1.middleware.requests", new=MockRequests())
+class TokenViewTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user("testid")
@@ -35,9 +44,8 @@ class AccountViewTestCase(APITestCase):
         self.assertEqual(access.payload["handle"], self.account.handle)
         self.assertEqual(access.payload["picture"], self.account.picture)
 
-    @patch("v1.account.views.requests")
     @patch("v1.account.views.getFirebaseUser")
-    def test_account_signin_new(self, fb_mock, req_mock):
+    def test_account_signin_new(self, fb_mock):
         test_id = "testid2"
         test_handle = "testhandle2"
         test_picture = "http://test.com/test2.png"
@@ -45,12 +53,6 @@ class AccountViewTestCase(APITestCase):
 
         fb_mock.return_value = {"userid":test_id,
             "handle":test_handle,"picture":test_picture}
-        
-        class Response:
-            def json(self):
-                return {"country":test_country}
-
-        req_mock.get.return_value = Response()
 
         url = reverse("account:account-signin")
         response = self.client.post(url, {"token":"testtoken"})
@@ -70,5 +72,78 @@ class AccountViewTestCase(APITestCase):
         self.assertEqual(account.country_code,test_country)
 
 
-    
+@patch("v1.middleware.requests", new=MockRequests())
+class AccountViewTestCase(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user_1 = User.objects.create_user("user_1")
+        user_2 = User.objects.create_user("user_2")
+        user_3 = User.objects.create_user("user_3")
 
+        cls.account_1 = Account.objects.create(user=user_1,
+                        handle="testhandle1",
+                        picture="http://test.com/test.png",
+                        points=200,
+                        country_code="TES")
+        
+        cls.account_2 = Account.objects.create(user=user_2,
+                        handle="testhandle2",
+                        picture="http://test.com/test.png",
+                        points=100,
+                        country_code="TES")
+        
+        cls.account_3 = Account.objects.create(user=user_3,
+                        handle="testhandle3",
+                        picture="http://test.com/test.png",
+                        points=300,
+                        country_code="TES")
+        
+        Trophy.objects.create(account=cls.account_3,points=100)
+        Trophy.objects.create(account=cls.account_1,points=200)
+
+    def test_list_accounts(self):
+        url = reverse("account:account-list")
+
+        response = self.client.get(url)
+        json = response.json()
+
+        self.assertEqual(len(json),3)
+        self.assertIn("id",json[0])
+        self.assertIn("handle",json[0])
+        self.assertIn("picture",json[0])
+        self.assertIn("points",json[0])
+        self.assertIn("trophies",json[0])
+
+        self.assertIn("points",json[0]["trophies"][0])
+
+        self.assertEqual(json[0]["points"],self.account_3.points)
+    
+    def test_retrieve_account(self):
+        url = reverse("account:account-detail",args=["testhandle1"])
+
+        response = self.client.get(url)
+        json = response.json()
+
+
+        self.assertIn("id",json)
+        self.assertIn("handle",json)
+        self.assertIn("picture",json)
+        self.assertIn("points",json)
+        self.assertIn("trophies",json)
+
+        self.assertIn("points",json["trophies"][0])
+
+        self.assertIn("ranks",json)
+        self.assertEqual(len(json["ranks"]),3)
+
+        self.assertIn("id",json["ranks"][0])
+        self.assertIn("rank",json["ranks"][0])
+        self.assertIn("handle",json["ranks"][0])
+        self.assertIn("picture",json["ranks"][0])
+        self.assertIn("points",json["ranks"][0])
+        self.assertIn("trophies",json["ranks"][0])
+
+        self.assertIn("points",json["ranks"][0]["trophies"][0])
+
+        self.assertEqual(json["ranks"][1]["handle"],self.account_1.handle)
+        self.assertEqual(json["ranks"][1]["points"],self.account_1.points)

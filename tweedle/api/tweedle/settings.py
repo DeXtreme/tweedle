@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'v1.middleware.CountryCodeMiddleware'
 ]
 
 ROOT_URLCONF = 'tweedle.urls'
@@ -113,8 +114,8 @@ CACHES = {
 SIMPLE_JWT = {
     "USER_ID_FIELD":"id",
     "USER_ID_CLAIM":"id",
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=2)
+    "ACCESS_TOKEN_LIFETIME": timedelta(weeks=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(weeks=4)
 }
 
 
