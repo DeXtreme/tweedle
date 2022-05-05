@@ -43,6 +43,10 @@ class TokenView(APIView):
         serializer = SigninSerializer(data=request.data)
         serializer.is_valid()
         token = serializer.validated_data["token"]
+        country_code = request.country_code
+
+        if not country_code:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         try:
             details = getFirebaseUser(token)

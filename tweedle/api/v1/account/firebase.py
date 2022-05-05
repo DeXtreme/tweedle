@@ -1,6 +1,12 @@
 import os,json
 import firebase_admin
-from firebase_admin import auth
+from firebase_admin import auth, credentials
+
+
+credentials_dict = json.loads(os.environ.get("FIREBASE_CREDENTIALS","{}"))
+certificate = credentials.Certificate(credentials_dict)
+firebase_admin.initialize_app(credential=certificate)
+
 
 def getFirebaseUser(token):
     """Get Firebase user details
@@ -14,19 +20,16 @@ def getFirebaseUser(token):
     Returns
     =======
     dict
-        uid: str
+        userid: str
             The userId of the user
-        name: str
+        handle: str
             The display name of the user
-        photourl: str
+        picture: str
             A link to the user photo
     """
-    credential = json.loads(os.environ.get("FIREBASE_CREDENTIALS","{}"))
-    firebase_admin.initialize_app(credential=credential)
     claims = auth.verify_id_token(token)
     userid = claims["uid"]
     fb_user = auth.get_user(userid)
-
     handle= fb_user.display_name
     picture = fb_user.photo_url
 

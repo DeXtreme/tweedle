@@ -18,13 +18,16 @@ class CountryCodeMiddleware:
         country_code = cache.get(ip)
         
         if not country_code:  
-            response = requests.get(f"http://ip-api.com/json/{ip}",
-                    {"fields":"countryCode"})
-            json = response.json()
-            country_code = json["countryCode"]
-            cache.set(ip,country_code,3600)
-
-        cache.touch(ip,3600)
+            try:
+                response = requests.get(f"http://ip-api.com/json/{ip}",
+                        {"fields":"countryCode"})
+                json = response.json()
+                country_code = json["countryCode"]
+                cache.set(ip,country_code,3600)
+            except KeyError:
+                pass
+        else:
+            cache.touch(ip,3600)
         
         request.country_code = country_code
         response = self.get_response(request)
