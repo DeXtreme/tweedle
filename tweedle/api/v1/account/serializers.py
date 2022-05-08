@@ -29,3 +29,6 @@ class LeaderboardSerializer(serializers.ModelSerializer):
 
 class SigninSerializer(serializers.Serializer):
     token = serializers.CharField()
+
+class LikeSerializer(serializers.Serializer):
+    like = serializers.BooleanField()

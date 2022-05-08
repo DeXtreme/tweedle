@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APITestCase
 from unittest.mock import patch
 from rest_framework_simplejwt.tokens import AccessToken
@@ -130,6 +131,7 @@ class AccountViewTestCase(APITestCase):
         self.assertIn("picture",json)
         self.assertIn("points",json)
         self.assertIn("trophies",json)
+        self.assertIn("likes",json)
 
         self.assertIn("points",json["trophies"][0])
 
@@ -147,3 +149,27 @@ class AccountViewTestCase(APITestCase):
 
         self.assertEqual(json["ranks"][1]["handle"],self.account_1.handle)
         self.assertEqual(json["ranks"][1]["points"],self.account_1.points)
+
+
+    def test_like(self):
+        url = reverse("account:account-like", args=[self.account_1.handle])
+        user = self.account_1.user
+        self.client.force_authenticate(user=user)
+
+        response = self.client.patch(url,{"like": True})
+        json = response.json()
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertIn("likes", json)
+        self.assertTrue(json["likes"])
+
+    def test_likes_count(self):
+        self.account_1.likes = True
+        self.account_1.save()
+
+        url = reverse("account:account-likes")
+        response = self.client.get(url)
+        json = response.json()
+
+        self.assertIn("likes_count", json)
+        self.assertEqual(json["likes_count"],2)

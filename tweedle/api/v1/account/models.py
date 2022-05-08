@@ -49,6 +49,8 @@ class Account(models.Model):
         The scored points
     country: str
         The country code of the account
+    likes : bool
+        The user likes the tweedle tweet
     """
 
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name="account")
@@ -56,6 +58,7 @@ class Account(models.Model):
     picture = models.URLField()
     points = models.IntegerField()
     country_code = models.CharField(max_length=5)
+    likes = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

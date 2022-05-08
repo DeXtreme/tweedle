@@ -1,16 +1,17 @@
 from django.contrib.auth.models import User
-from django.db.models import Window, Subquery
-from django.db.models.functions import window
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import AccountSerializer,SigninSerializer
 from .models import Account
 from v1.account.firebase import getFirebaseUser
 
-from .serializers import LeaderboardSerializer
+from .serializers import LeaderboardSerializer, LikeSerializer
 
 class AccountView(GenericViewSet):
 
@@ -33,8 +34,28 @@ class AccountView(GenericViewSet):
         serializer = self.get_serializer_class()(account)
 
         return Response(serializer.data)
-        
 
+    @action(methods=["PATCH"],authentication_classes=[JWTAuthentication],
+    permission_classes=[IsAuthenticated],detail=True)
+    def like(self, request, *args, **kwargs):
+        serializer = LikeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        account = request.user.account
+        account.likes = serializer.validated_data["like"]
+        account.save()
+
+        data = {"likes": account.likes}
+
+        return Response(data)
+    
+    @action(methods=["GET"],detail=False)
+    def likes(self, request, *args, **kwargs):
+        count = self.get_queryset().filter(likes=True).count()
+        data = {"likes_count": count+1}
+        return Response(data)
+    
+
+    
 class TokenView(APIView):
     permission_classes = ()
     authentication_classes = ()
@@ -71,6 +92,7 @@ class TokenView(APIView):
         token = RefreshToken.for_user(user)
         token["handle"] = account.handle
         token["picture"] = account.picture
+        token["likes"] = account.likes
         
         return Response({
             "access": str(token.access_token),
