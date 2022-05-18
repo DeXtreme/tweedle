@@ -1,24 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import {Provider as APIProvider} from './API';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Leaderboard from './pages/Leaderboard';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <APIProvider>
+      <BrowserRouter>
+        <div className='md:grid md:grid-cols-12'>
+          <div className='md:col-start-3 md:col-span-8 relative'>
+            <Navbar />
+            <Routes>
+              <Route path='/' element={<Home />}/> 
+              <Route path='leaderboard' element={<Leaderboard/>}/>
+              <Route path='@:handle' element={<Profile />}/>
+              <Route path="*" element={<NotFound />}/>
+            </Routes>
+          </div>
+        </div>
+      </BrowserRouter>
+    </APIProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-from argparse import ONE_OR_MORE
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Window,F
@@ -7,7 +7,7 @@ from django.db.models.functions import window
 
 class AccountRankingManager(models.Manager):
     def get(self, handle):
-        account = self.get_queryset().get(handle=handle)
+        account = get_object_or_404(self.get_queryset(),handle=handle)
 
         rankings = self.get_queryset()\
                         .filter(country_code=account.country_code)\

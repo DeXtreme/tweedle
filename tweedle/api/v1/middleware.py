@@ -24,11 +24,12 @@ class CountryCodeMiddleware:
                 json = response.json()
                 country_code = json["countryCode"]
                 cache.set(ip,country_code,3600)
-            except KeyError:
+            except Exception:
                 pass
         else:
             cache.touch(ip,3600)
-        
+
+        print(ip,flush=True)
         request.country_code = country_code
         response = self.get_response(request)
 

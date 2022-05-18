@@ -23,6 +23,7 @@ class AccountView(GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         country_code = request.country_code
+        print(country_code,flush=True)
         accounts = self.get_queryset().filter(country_code=country_code)\
             .order_by("-points")
         serializer = LeaderboardSerializer(accounts,many=True)
