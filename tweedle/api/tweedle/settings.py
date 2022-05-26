@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import imp
 import os,re
 from pathlib import Path
 from datetime import timedelta
@@ -43,7 +42,8 @@ INSTALLED_APPS = [
     "corsheaders",
     'rest_framework',
     'rest_framework_simplejwt',
-    'v1.account'
+    'v1.account',
+    'v1.quiz',
 ]
 
 MIDDLEWARE = [
@@ -125,6 +125,12 @@ if(DEBUG):
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOW_ALL_ORIGINS = os.environ.get("ALLOWED_ORIGINS","").split(",")
+
+
+#tweepy
+TWEEPY_ACCESS_TOKEN = os.environ.get("TWEEPY_ACCESS_TOKEN","")
+TWEEPY_SECRET_TOKEN = os.environ.get("TWEEPY_SECRET_TOKEN","")
+
 
 
 # Password validation

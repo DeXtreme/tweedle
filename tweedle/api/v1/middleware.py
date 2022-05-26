@@ -29,7 +29,6 @@ class CountryCodeMiddleware:
         else:
             cache.touch(ip,3600)
 
-        print(ip,flush=True)
         request.country_code = country_code
         response = self.get_response(request)
 
