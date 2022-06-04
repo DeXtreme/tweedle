@@ -32,11 +32,13 @@ class QuizView(APIView):
         quiz = {}
         quiz["id"] = uuid4()
         quiz["lives"] = 3
+        quiz["points"] = 0
         quiz["over"] = False
         
         questions = []
         while len(questions) < 10:
-            gen = choice([self._gen_who_tweeted,self._gen_who_is_this])
+            #gen = choice([self._gen_who_tweeted,self._gen_who_is_this])
+            gen = choice([self._gen_who_tweeted])
             question = gen(tweets)
 
             if question:
@@ -53,6 +55,7 @@ class QuizView(APIView):
                 "id": quiz["id"],
                 "lives": quiz["lives"],
                 "over": quiz["over"],
+                "points": quiz["points"],
                 "question": {
                     "id": question["id"],
                     "type": question["type"],
@@ -65,6 +68,57 @@ class QuizView(APIView):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
     
+
+    def post(self,request,quiz_id,*args,**kwargs):
+
+        choice = request.data["choice"]
+
+        quiz = cache.get(quiz_id)
+        
+        if not quiz:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        questions = quiz["questions"]
+        answer = questions[0]["answer"]
+        question = None
+
+        over = False
+
+        if answer == choice:
+            quiz["points"] += 10
+        else:
+            quiz["lives"] -= 1
+
+        questions.pop(0)
+
+        if len(questions) == 0 or quiz["lives"] == 0:
+            over = True
+            cache.delete(quiz_id)
+        else:   
+            question = questions[0]
+            cache.set(quiz_id, quiz)
+
+        data = {
+            "answer": answer,
+            'quiz': {
+                "id": quiz["id"],
+                "lives": quiz["lives"],
+                "over": over,
+                "points": quiz["points"],
+            }
+        }
+
+        if question:
+            data["quiz"]["question"] = {
+                "id": question["id"],
+                "type": question["type"],
+                "pre": question["pre"],
+                "choices": question["choices"]
+            }
+        
+        return Response(data)
+            
+
     def _gen_who_tweeted(self,tweets):
         for _ in range(5):
             question = {}
@@ -75,7 +129,7 @@ class QuizView(APIView):
             
             question["id"] = uuid4()
             question["type"] = 1
-            question["pre"]= {"text": tweet.full_text}
+            question["pre"]= {"text": tweet.full_text,"media":[]}
             if "media" in tweet.entities:
                 question["pre"]["media"] = list(map(
                     lambda media: {

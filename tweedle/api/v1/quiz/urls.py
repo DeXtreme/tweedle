@@ -5,5 +5,5 @@ app_name = "quiz"
 
 urlpatterns = [
     path("", QuizView.as_view(), name="quiz-new"),
-    path("<str:id>", QuizView.as_view(), name="quiz")
+    path("<str:quiz_id>", QuizView.as_view(), name="quiz")
 ]
