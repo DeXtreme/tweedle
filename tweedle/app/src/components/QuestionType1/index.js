@@ -1,0 +1,1 @@
+export {QuestionType1} from './QuestionType1';

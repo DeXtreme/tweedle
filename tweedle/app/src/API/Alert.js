@@ -51,7 +51,7 @@ export function Alert({onClose, message}){
 
     return(
         <div ref={ref} className='flex items-center
-        bg-accent gap-4 p-4 rounded-lg translate-x-full w-fit mb-2'>
+        bg-accent gap-4 p-4 rounded-lg translate-x-full max-w-full ml-5 md:w-fit mb-2'>
             <p className='flex-1'>{message}</p>
             <AiOutlineClose onClick={handleClose} className='cursor-pointer'/>
         </div>

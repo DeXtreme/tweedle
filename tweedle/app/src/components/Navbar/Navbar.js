@@ -46,9 +46,9 @@ function Navbar(){
                         <h4 className='font-medium overflow-hidden whitespace-nowrap'>{user.handle}</h4>
                         <FaCaretDown />
                     </div>
-                    <div className={classNames('overflow-hidden text-right','transition-all',
-                        {'pb-2 max-h-48': showDropdown, 'max-h-0': !showDropdown})}>
-                        <Link to={''} className='block mb-6 text-base'>
+                    <div className={classNames('overflow-hidden text-right font-light','transition-all',
+                        {'pb-2 max-h-48': showDropdown,'max-h-0': !showDropdown})}>
+                        <Link to={'quiz'} className='block mb-6 text-base'>
                             <FaPlus className='inline-block text-xl mr-2'/> New game
                         </Link>
                         <Link to={`@${user.handle}`} className='block mb-3 text-base'>
@@ -57,7 +57,7 @@ function Navbar(){
                         <Link to={"leaderboard"} className='block mb-8 text-base'>
                             <FaTrophy className='inline-block text-xl mr-2'/> Leaderboard
                         </Link>
-                        <button className='ml-auto block' onClick={signOut}>
+                        <button className='ml-auto block font-light' onClick={signOut}>
                             <CgLogOut className='inline mr-2 text-xl'/>Sign out
                         </button>
                     </div>

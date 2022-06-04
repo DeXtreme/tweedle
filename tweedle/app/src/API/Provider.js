@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import { TwitterAuthProvider, getAuth, signInWithPopup } from '@firebase/auth';
 import { userActions, boardActions } from '../slices';
 import { context } from './context';
@@ -11,6 +12,7 @@ export function Provider({children}){
 
     let dispatch = useDispatch();
     let [alerts, setAlerts] = useState({});
+    let goTo = useNavigate();
     let {token, likes, handle} = useSelector(state => state.user);
 
 
@@ -42,7 +44,10 @@ export function Provider({children}){
         })
     }
 
-    const signOut = () => dispatch(userActions.signOut());
+    const signOut = () => {
+        dispatch(userActions.signOut());
+        goTo("/");
+    };
 
     const like = () => {
         if(!handle){
@@ -106,6 +111,41 @@ export function Provider({children}){
         return profile;
     }
 
+    const newQuiz = async () => {
+
+        if(!handle){
+            addAlert("Please sign in first")
+            throw new Error();
+        }
+
+        async function handleResponse(response){
+            if(response.ok){
+                return await response.json();
+            }
+            throw new Error();
+        }
+
+        let quiz = await get(`quiz/`, handleResponse)
+
+        return quiz;
+    }
+
+    const answerQuiz = async (quiz_id,choice) => {
+        async function handleResponse(response){
+            if(response.ok){
+                return await response.json();
+            }
+            throw new Error();
+        }
+        
+        let quiz = await post(`quiz/${quiz_id}`,{choice}, handleResponse)
+            .catch(error=>{
+                console.log(error);
+            });
+
+        return quiz;
+    }
+
     const api = () => {
         return {get, post, patch}
     }
@@ -127,6 +167,7 @@ export function Provider({children}){
             addAlert("A server error was encountered");
         }else if(response.status === 401){
             addAlert("Please sign in");
+            goTo("/", {replace:true})
         }
 
         return (callback) ? await callback(response): response;
@@ -188,7 +229,7 @@ export function Provider({children}){
 
     return(
         <context.Provider value = {{signIn,signOut,like,getLikeCount,
-        getLeaderboard, getProfile, api}}>
+        getLeaderboard, getProfile, newQuiz, answerQuiz,api}}>
             <div className='absolute top-20 right-0 z-10
             mr-2 w-full flex flex-col items-end overflow-x-hidden'>
                 {alerts && Object.keys(alerts).map( key =>

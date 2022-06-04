@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { Link } from 'react-router-dom';
 import { useAPI } from "../API";
 import { FaTrophy } from 'react-icons/fa';
 import { Rank } from "../components/Rank"
@@ -40,10 +41,10 @@ function Leaderboard(){
                         <div className="flex flex-col items-center pt-20">
                             <FaTrophy className="w-32 h-32 text-light-blue mb-2"/>
                             <h1 className="opacity-70 mb-8">No one's on here yet</h1>
-                            <button className="bg-accent rounded-full px-8 py-3 font-medium
+                            <Link to={"/quiz"} className="bg-accent rounded-full px-8 py-3 font-medium
                             hover:text-light-blue hover:bg-white transition-all">
                                 Play Now
-                            </button>
+                            </Link>
                         </div>
                     }
                 </>
