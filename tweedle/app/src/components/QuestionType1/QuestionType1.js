@@ -3,6 +3,7 @@ import { FaRegCommentAlt, FaRegHeart, FaQuestionCircle} from "react-icons/fa";
 import { AiOutlineRetweet } from 'react-icons/ai';
 
 import { Choice } from '../Choice';
+import { render } from "@testing-library/react";
 
 export function QuestionType1({question, answer, onAnswer, key}){
     let [choice, setChoice] = useState(null);
@@ -29,7 +30,7 @@ export function QuestionType1({question, answer, onAnswer, key}){
     return(
         <>
             <div className="flex flex-col items-center">
-                <div className="md:-ml-16 max-w-3xl">
+                <div className="md:-ml-16 max-w-3xl break-normal">
                     <p className="font-medium mb-3">Who tweeted this?</p>
                     <div className="flex gap-4">
                         <div>
@@ -40,7 +41,7 @@ export function QuestionType1({question, answer, onAnswer, key}){
                             <p className="md:text-lg">{question.pre.text}</p>
                             {(question.pre.media.length < 3) ?
                                 <div className="flex rounded-2xl overflow-clip mt-2">
-                                    {question.pre.media.map(media => <img className="w-1/2 max-h-80 p-0.5 flex-1 object-cover" src={media.url} />)}
+                                    {question.pre.media.map(media => <img className="w-1/2 h-80 flex-1 object-cover bg-accent" src={media.url} />)}
                                 </div>
                             : (question.pre.media.length == 3) ?
                                 <div className="flex rounded-2xl overflow-clip gap-1 mt-2">
@@ -66,10 +67,10 @@ export function QuestionType1({question, answer, onAnswer, key}){
             </div>
             <div className="flex flex-col items-center">
                 {Object.keys(question.choices).map((name,i)=>
-                    <Choice key={i} onClick={()=>handleSelect(name)} selected={name===choice}
+                    <Choice key={Math.random()} onClick={()=>handleSelect(name)} selected={name===choice}
                     hasSelection={!!choice} correct={answer && name===answer} wrong={answer && name!==answer}>
                         <img src={question.choices[name]} className="inline-block rounded-full
-                        mr-4 w-9" alt="dp"/>
+                        mr-4 w-9 h-9 bg-accent"/>
                         <span>@{name}</span>
                     </Choice>
                 )}

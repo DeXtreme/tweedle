@@ -60,7 +60,7 @@ function Quiz(){
                         </div>
                     </div>
                     {(quiz && quiz.question && quiz.question.type == 1) ?
-                        <QuestionType1 onAnswer={handleAnswer} answer={answer} question={quiz.question}/>
+                        <QuestionType1 onAnswer={handleAnswer} answer={answer} question={quiz.question} key={quiz.question.id}/>
                     :
                     <div></div>}
                 </div>

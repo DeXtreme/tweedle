@@ -6,7 +6,9 @@ from django.core.cache import cache
 import tweepy as tw
 from pprint import pprint
 from uuid import uuid4
-from random import choice
+from random import choice,shuffle
+
+from v1.account.models import Trophy
 
 
 class QuizView(APIView):
@@ -70,9 +72,7 @@ class QuizView(APIView):
     
 
     def post(self,request,quiz_id,*args,**kwargs):
-
         choice = request.data["choice"]
-
         quiz = cache.get(quiz_id)
         
         if not quiz:
@@ -81,8 +81,13 @@ class QuizView(APIView):
         questions = quiz["questions"]
         answer = questions[0]["answer"]
         question = None
-
+        won_trophy = False
         over = False
+
+        result = {
+            "answer": answer,
+            "quiz": {}
+        }
 
         if answer == choice:
             quiz["points"] += 10
@@ -94,29 +99,36 @@ class QuizView(APIView):
         if len(questions) == 0 or quiz["lives"] == 0:
             over = True
             cache.delete(quiz_id)
+            account = request.user.account
+            account.points += quiz["points"]
+            account.save()
+
+            if quiz["points"] == 100:
+                won_trophy = True
+                Trophy.objects.create(account=account,points=quiz["points"])
+            
+            result["quiz"]["trophy"] = won_trophy
+
         else:   
             question = questions[0]
             cache.set(quiz_id, quiz)
 
-        data = {
-            "answer": answer,
-            'quiz': {
-                "id": quiz["id"],
-                "lives": quiz["lives"],
-                "over": over,
-                "points": quiz["points"],
-            }
-        }
-
-        if question:
-            data["quiz"]["question"] = {
+            result["quiz"]["question"] = {
                 "id": question["id"],
                 "type": question["type"],
                 "pre": question["pre"],
                 "choices": question["choices"]
             }
-        
-        return Response(data)
+
+        result['quiz'].update({  
+            "id": quiz["id"],
+            "lives": quiz["lives"],
+            "over": over,
+            "points": quiz["points"],
+        })
+
+
+        return Response(result)
             
 
     def _gen_who_tweeted(self,tweets):
@@ -147,7 +159,15 @@ class QuizView(APIView):
                 rnd_tweet = choice(tweets)
                 choices[rnd_tweet.user.screen_name] = rnd_tweet.user.profile_image_url
             
-            question["choices"] = choices
+            shuffled_choices = {}
+            
+            keys = list(choices.keys())
+            shuffle(keys)
+
+            for key in keys:
+                shuffled_choices[key] = choices[key]
+
+            question["choices"] = shuffled_choices
 
             return question
     
@@ -167,9 +187,12 @@ class QuizView(APIView):
             if rnd_tweet.user.screen_name not in choices:
                 choices.append(rnd_tweet.user.screen_name)
         
+        shuffle(choices)
         question["choices"] = choices
 
         return question
+
+
 
        
 
