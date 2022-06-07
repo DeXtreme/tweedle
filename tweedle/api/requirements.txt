@@ -15,3 +15,5 @@ tzdata==2021.5
 wrapt==1.14.0
 celery==5.2.6
 gunicorn==20.1.0
+firebase-admin==5.2.0
+tweepy==4.9.0

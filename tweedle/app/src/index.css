@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&family=Varela+Round&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+body{
+    @apply text-white bg-gradient-to-br from-light-blue to-deep-blue bg-no-repeat min-h-screen box-border
+}
