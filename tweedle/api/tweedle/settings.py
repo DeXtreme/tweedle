@@ -124,7 +124,7 @@ SIMPLE_JWT = {
 if(DEBUG):
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    CORS_ALLOW_ALL_ORIGINS = os.environ.get("ALLOWED_ORIGINS","").split(",")
+    CORS_ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS","").split(",")
 
 
 #tweepy
