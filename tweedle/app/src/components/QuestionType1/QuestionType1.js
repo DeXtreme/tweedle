@@ -5,12 +5,12 @@ import { AiOutlineRetweet } from 'react-icons/ai';
 import { Choice } from '../Choice';
 import { render } from "@testing-library/react";
 
-export function QuestionType1({question, answer, onAnswer, key}){
+export function QuestionType1({question, answer, onAnswer}){
     let [choice, setChoice] = useState(null);
 
-    useEffect(()=>{
+    /*useEffect(()=>{
         setChoice(null)
-    },[question])
+    },[question])*/
 
     useEffect(()=>{
         if(choice){
@@ -67,7 +67,7 @@ export function QuestionType1({question, answer, onAnswer, key}){
             </div>
             <div className="flex flex-col items-center">
                 {Object.keys(question.choices).map((name,i)=>
-                    <Choice key={Math.random()} onClick={()=>handleSelect(name)} selected={name===choice}
+                    <Choice onClick={()=>handleSelect(name)} selected={name===choice}
                     hasSelection={!!choice} correct={answer && name===answer} wrong={answer && name!==answer}>
                         <img src={question.choices[name]} className="inline-block rounded-full
                         mr-4 w-9 h-9 bg-accent"/>
